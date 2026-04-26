@@ -1,7 +1,7 @@
 import { useState } from "react";
 import AdminPanel from "./AdminPanel";
 
-const API = "http://localhost:3000/v1";
+const API = "https://village-api-theta.vercel.app/v1";
 
 function DemoForm() {
   const [states, setStates] = useState([]);
