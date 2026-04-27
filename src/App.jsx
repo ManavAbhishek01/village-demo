@@ -1,7 +1,11 @@
+import B2BPortal from "./B2BPortal";
 import { useState } from "react";
 import AdminPanel from "./AdminPanel";
 
 const API = "https://village-api-theta.vercel.app/v1";
+const DEMO_HEADERS = {
+  "X-API-Key": "ak_fd3fb8f75ecd6b94b4de2a4b7f00f504"
+};
 
 function DemoForm() {
   const [states, setStates] = useState([]);
@@ -18,7 +22,9 @@ function DemoForm() {
   const [submitted, setSubmitted] = useState(false);
 
   useState(() => {
-    fetch(`${API}/states`).then(r => r.json()).then(d => setStates(d.data));
+    fetch(`${API}/states`, { headers: DEMO_HEADERS })
+      .then(r => r.json())
+      .then(d => setStates(d.data || []));
   }, []);
 
   const onStateChange = (e) => {
@@ -26,7 +32,8 @@ function DemoForm() {
     const name = states.find(s => s.code == code)?.name || "";
     setForm(f => ({ ...f, state: name, district: "", subDistrict: "", village: "" }));
     setDistricts([]); setSubDistricts([]); setVillages([]);
-    if (code) fetch(`${API}/states/${code}/districts`).then(r => r.json()).then(d => setDistricts(d.data));
+    if (code) fetch(`${API}/states/${code}/districts`, { headers: DEMO_HEADERS })
+      .then(r => r.json()).then(d => setDistricts(d.data || []));
   };
 
   const onDistrictChange = (e) => {
@@ -34,7 +41,8 @@ function DemoForm() {
     const name = districts.find(d => d.code == code)?.name || "";
     setForm(f => ({ ...f, district: name, subDistrict: "", village: "" }));
     setSubDistricts([]); setVillages([]);
-    if (code) fetch(`${API}/districts/${code}/subdistricts`).then(r => r.json()).then(d => setSubDistricts(d.data));
+    if (code) fetch(`${API}/districts/${code}/subdistricts`, { headers: DEMO_HEADERS })
+      .then(r => r.json()).then(d => setSubDistricts(d.data || []));
   };
 
   const onSubDistrictChange = (e) => {
@@ -42,7 +50,8 @@ function DemoForm() {
     const name = subDistricts.find(s => s.code == code)?.name || "";
     setForm(f => ({ ...f, subDistrict: name, village: "" }));
     setVillages([]);
-    if (code) fetch(`${API}/subdistricts/${code}/villages`).then(r => r.json()).then(d => setVillages(d.data));
+    if (code) fetch(`${API}/subdistricts/${code}/villages`, { headers: DEMO_HEADERS })
+      .then(r => r.json()).then(d => setVillages(d.data || []));
   };
 
   const onAutocomplete = (e) => {
@@ -50,7 +59,9 @@ function DemoForm() {
     setQuery(q);
     setForm(f => ({ ...f, village: q }));
     if (q.length >= 2) {
-      fetch(`${API}/autocomplete?q=${q}`).then(r => r.json()).then(d => { setAutocomplete(d.data); setShowDropdown(true); });
+      fetch(`${API}/autocomplete?q=${q}`, { headers: DEMO_HEADERS })
+        .then(r => r.json())
+        .then(d => { setAutocomplete(d.data || []); setShowDropdown(true); });
     } else setShowDropdown(false);
   };
 
@@ -101,10 +112,22 @@ function DemoForm() {
             )}
           </div>
           <p style={{ textAlign: "center", color: "#9ca3af", margin: "8px 0" }}>— YA —</p>
-          <select style={styles.input} onChange={onStateChange} defaultValue=""><option value="">State chuno</option>{states.map(s => <option key={s.code} value={s.code}>{s.name}</option>)}</select>
-          <select style={styles.input} onChange={onDistrictChange} defaultValue="" disabled={!districts.length}><option value="">District chuno</option>{districts.map(d => <option key={d.code} value={d.code}>{d.name}</option>)}</select>
-          <select style={styles.input} onChange={onSubDistrictChange} defaultValue="" disabled={!subDistricts.length}><option value="">Sub-District chuno</option>{subDistricts.map(s => <option key={s.code} value={s.code}>{s.name}</option>)}</select>
-          <select style={styles.input} onChange={e => setForm(f => ({ ...f, village: e.target.value }))} defaultValue="" disabled={!villages.length}><option value="">Village chuno</option>{villages.map((v, i) => <option key={i} value={v.name}>{v.name}</option>)}</select>
+          <select style={styles.input} onChange={onStateChange} defaultValue="">
+            <option value="">State chuno</option>
+            {states.map(s => <option key={s.code} value={s.code}>{s.name}</option>)}
+          </select>
+          <select style={styles.input} onChange={onDistrictChange} defaultValue="" disabled={!districts.length}>
+            <option value="">District chuno</option>
+            {districts.map(d => <option key={d.code} value={d.code}>{d.name}</option>)}
+          </select>
+          <select style={styles.input} onChange={onSubDistrictChange} defaultValue="" disabled={!subDistricts.length}>
+            <option value="">Sub-District chuno</option>
+            {subDistricts.map(s => <option key={s.code} value={s.code}>{s.name}</option>)}
+          </select>
+          <select style={styles.input} onChange={e => setForm(f => ({ ...f, village: e.target.value }))} defaultValue="" disabled={!villages.length}>
+            <option value="">Village chuno</option>
+            {villages.map((v, i) => <option key={i} value={v.name}>{v.name}</option>)}
+          </select>
         </div>
         {form.village && (
           <div style={styles.addressBox}>
@@ -112,7 +135,10 @@ function DemoForm() {
             <span style={{ color: "#2563eb" }}>{[form.village, form.subDistrict, form.district, form.state, form.country].filter(Boolean).join(", ")}</span>
           </div>
         )}
-        <button style={styles.btn} onClick={() => { if (!form.name || !form.village) { alert("Name aur Village zaroori hai!"); return; } setSubmitted(true); }}>Submit Form ✅</button>
+        <button style={styles.btn} onClick={() => {
+          if (!form.name || !form.village) { alert("Name aur Village zaroori hai!"); return; }
+          setSubmitted(true);
+        }}>Submit Form ✅</button>
       </div>
     </div>
   );
@@ -125,8 +151,9 @@ export default function App() {
       <div style={{ background: "#1e293b", padding: "10px 20px", display: "flex", gap: 12 }}>
         <button onClick={() => setPage("demo")} style={{ padding: "6px 16px", borderRadius: 8, border: "none", cursor: "pointer", background: page === "demo" ? "#2563eb" : "#334155", color: "white", fontWeight: "bold" }}>🌍 Demo Form</button>
         <button onClick={() => setPage("admin")} style={{ padding: "6px 16px", borderRadius: 8, border: "none", cursor: "pointer", background: page === "admin" ? "#2563eb" : "#334155", color: "white", fontWeight: "bold" }}>📊 Admin Panel</button>
+        <button onClick={() => setPage("b2b")} style={{ padding: "6px 16px", borderRadius: 8, border: "none", cursor: "pointer", background: page === "b2b" ? "#2563eb" : "#334155", color: "white", fontWeight: "bold" }}>🏢 B2B Portal</button>
       </div>
-      {page === "admin" ? <AdminPanel /> : <DemoForm />}
+      {page === "admin" ? <AdminPanel /> : page === "b2b" ? <B2BPortal /> : <DemoForm />}
     </div>
   );
 }
